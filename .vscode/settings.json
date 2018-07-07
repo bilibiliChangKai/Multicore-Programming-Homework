@@ -11,7 +11,9 @@
         "string": "cpp",
         "string_view": "cpp",
         "__tree": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "ostream": "cpp",
+        "chrono": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
