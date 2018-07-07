@@ -6,47 +6,50 @@ Date: 2018年6月20日 星期三 下午7:51
 ****************************************************************************/
 
 #include "../../inc/matrix.h"
+#include "../../inc/timer.h"
 #include <cmath>
 #include <iostream>
 #include <mpi.h>
 using namespace std;
 
-const long n = 1000;
-int matrix[n][n];
-int matrixT[n][n];
-
-// inline Position getPosition(long pos)
-// {
-//     long begin = 1;
-//     long end = n - 1;
-//     long tempsum = sum;
-//     while (begin != end - 1)
-//     {
-//         long half = (tempsum - pow((end - begin + 1), 2) / 4) / 2;
-//         // 奇数的话，则需要减mid中的一半
-//         if ((end - begin + 1) % 2 == 1)
-//             half -= (begin + end) / 4;
-//     }
-// }
+int *matrix;
+int *matrixT;
 
 int main(int argc, char **argv)
 {
   int myid, numprocs;
-  int namelen;
-  char processname[MPI_MAX_PROCESSOR_NAME];
-  double begin, end;
-
-  // init matrix
-  initMatrix((int *)matrix, n);
+  int *buffer;
+  long begin, end;
 
   // STEP : 1
   // init multicore process
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
   MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-  MPI_Get_processor_name(processname, &namelen);
-  fprintf(stderr, "Process %d of %d on %s\n", myid, numprocs, processname);
-  begin = MPI_Wtime();
+
+  if (myid == 0) {
+    scanN();
+  }
+  
+  // init matrixs
+  struct DeferFunc {
+    DeferFunc() {
+      matrix = new int[n * n];
+      matrixT = new int[n * n];
+    }
+    ~DeferFunc() {
+      delete[] matrix;
+      delete[] matrixT;
+    }
+  } _;
+
+  if (myid == 0) {
+    initMatrix(matrix, n);
+    begin = getTimeStamp();
+  }
+ 
+  MPI_Bcast(&n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+  MPI_Bcast(matrix, n * n, MPI_INT, 0, MPI_COMM_WORLD);
 
   // STEP : 2
   // process begin calculate
@@ -57,17 +60,26 @@ int main(int argc, char **argv)
   fprintf(stderr, "%d process calculate [(%ld, %ld), (%ld, %ld)!\n", myid,
           ROW(beginindex), COL(beginindex), ROW(endindex), COL(endindex));
 
-  for (long i = beginindex; i < endindex; i++)
+  buffer = new int[n * n];
+  for (int i = 0; i < n * n; i++) {
+    buffer[i] = 0;
+  }
+  for (long pos = beginindex; pos < endindex; pos++)
   {
-    matrixT[COL(i)][ROW(i)] = matrix[ROW(i)][COL(i)];
+    buffer[POS(COL(pos), ROW(pos))] = matrix[pos];
   }
 
   // STEP : 3
-  // process end
-  end = MPI_Wtime();
-  fprintf(stderr, "%d process over in %lf times!\n", myid, end - begin);
-  MPI_Finalize();
+  // process reduce
+  MPI_Reduce(buffer, matrixT, n * n, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
 
-  printMatrix((int *)matrix, n);
-  printMatrix((int *)matrixT, n);
+  // STEP : 4
+  // process end
+  if (myid == 0) {
+    end = getTimeStamp();
+    fprintf(stdout, "Times : %ldus\n", getDuration(begin, end));
+    printMatrix((int *)matrix, n);
+    printMatrix((int *)matrixT, n);
+  }
+  MPI_Finalize();
 }

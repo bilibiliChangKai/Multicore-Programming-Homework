@@ -12,8 +12,12 @@
         "string_view": "cpp",
         "__tree": "cpp",
         "map": "cpp",
+<<<<<<< HEAD
         "ostream": "cpp",
         "chrono": "cpp"
+=======
+        "*.tcc": "cpp"
+>>>>>>> ccf207621a1f105f4c4cd76e266bae7cdecaed83
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
