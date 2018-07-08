@@ -56,7 +56,7 @@ $ tree -L 3 .
 
 1. 所有程序都使用4个核处理。
 
-2. 程序编译指令如下：
+2. 程序编译指令如下：（都加上O3 flag）
 
    ~~~bash
    # pthread
@@ -64,6 +64,8 @@ $ tree -L 3 .
    # openmp
    $ g++-8 -std=c++11 -O3 -fopenmp -o XXX XXX.cpp
    # mpi
+   $ mpic++ -std=c++11 -O3 -o XXX XXX.cpp
+   $ mpirun -n 4 XXX
    # ispc (见makefile)
    $ make
    ~~~
@@ -110,7 +112,7 @@ $ tree -L 3 .
 |      pthread      | 233us |  556us  | 1720659us | 16535552us |
 |      openmp       | 369us |  825us  | 1512316us | 16560456us |
 |        MPI        |   130us    |    412us     |     1663575us      |    18352551us        |
-|       ISPC        |  4us  | 1914us  | 1885006us | 15101259us |
+|       ISPC        |  4us  | 394us | 1885006us | 15101259us |
 
 - 矩阵转置：
 
@@ -118,8 +120,12 @@ $ tree -L 3 .
 | :---------------: | :---: | :-----: | :-------: | :---------: |
 |      pthread      | 228us |  288us  |  6990us   |  470883us   |
 |      openmp       | 418us |  453us  |  6747us   |  471360us   |
-|        MPI        |   102us    |    289us     |     8702us      |    ???(电脑炸了)         |
+|        MPI        |   102us    |    289us     |     8702us      |   Reduce时溢出   |
 |       ISPC        |  1us  |  75us   |  7127us   |  799286us   |
 
 ## 实验结果
 
+1. 在低规模时，四种并行模型的运行速度比较分别是ISPC > MPI > pthread > openmp
+2. 在高规模时，四种并行模型的运行速度差距不太大，反而ISPC和MPI不够稳定（可能是代码编写问题）
+3. 第一次运行时，除了ISPC之外，其他三种情况都出现了运行时间特别大的情况，猜测可能是装页。
+4. MPI由于没有共享内存，因此在代码编写方面比较困难，需要注意的事情很多
