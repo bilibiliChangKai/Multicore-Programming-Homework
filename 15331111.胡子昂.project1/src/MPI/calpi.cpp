@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
   if (myid == 0) {
     end = getTimeStamp();
     fprintf(stderr, "Times : %ldus\n", getDuration(begin, end));
-    fprintf(stdout, "pi is %lf!\n", sum);
+    // fprintf(stdout, "pi is %lf!\n", sum);
   }
   MPI_Finalize();
   

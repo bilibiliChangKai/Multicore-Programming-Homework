@@ -30,6 +30,8 @@ int main(int argc, char **argv) {
     scanN();
   }
 
+  MPI_Bcast(&n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+
   // init matrixs
   struct DeferFunc {
     DeferFunc() {
@@ -50,7 +52,6 @@ int main(int argc, char **argv) {
     begin = getTimeStamp();
   }
   
-  MPI_Bcast(&n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
   MPI_Bcast(matrixA, n * n, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(matrixB, n * n, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -82,9 +83,9 @@ int main(int argc, char **argv) {
   if (myid == 0) {
     end = getTimeStamp();
     fprintf(stdout, "Times : %ldus\n", getDuration(begin, end));
-    printMatrix(matrixA, n);
-    printMatrix(matrixB, n);
-    printMatrix(matrixC, n);
+    // printMatrix(matrixA, n);
+    // printMatrix(matrixB, n);
+    // printMatrix(matrixC, n);
   }
   MPI_Finalize();
 }

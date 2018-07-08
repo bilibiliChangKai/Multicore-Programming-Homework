@@ -31,6 +31,8 @@ int main(int argc, char **argv)
     scanN();
   }
   
+  MPI_Bcast(&n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+
   // init matrixs
   struct DeferFunc {
     DeferFunc() {
@@ -48,17 +50,16 @@ int main(int argc, char **argv)
     begin = getTimeStamp();
   }
  
-  MPI_Bcast(&n, 1, MPI_LONG, 0, MPI_COMM_WORLD);
   MPI_Bcast(matrix, n * n, MPI_INT, 0, MPI_COMM_WORLD);
 
   // STEP : 2
   // process begin calculate
-  fprintf(stderr, "%d process enter calculate part!\n", myid);
+  // fprintf(stderr, "%d process enter calculate part!\n", myid);
   long beginindex = myid == 0 ? 0 : n * n / numprocs * myid;
   long endindex =
       myid == numprocs - 1 ? n * n : (n * n / numprocs) * (myid + 1);
-  fprintf(stderr, "%d process calculate [(%ld, %ld), (%ld, %ld)!\n", myid,
-          ROW(beginindex), COL(beginindex), ROW(endindex), COL(endindex));
+  // fprintf(stderr, "%d process calculate [(%ld, %ld), (%ld, %ld)!\n", myid,
+  //         ROW(beginindex), COL(beginindex), ROW(endindex), COL(endindex));
 
   buffer = new int[n * n];
   for (int i = 0; i < n * n; i++) {
@@ -78,8 +79,8 @@ int main(int argc, char **argv)
   if (myid == 0) {
     end = getTimeStamp();
     fprintf(stdout, "Times : %ldus\n", getDuration(begin, end));
-    printMatrix((int *)matrix, n);
-    printMatrix((int *)matrixT, n);
+    // printMatrix((int *)matrix, n);
+    // printMatrix((int *)matrixT, n);
   }
   MPI_Finalize();
 }
